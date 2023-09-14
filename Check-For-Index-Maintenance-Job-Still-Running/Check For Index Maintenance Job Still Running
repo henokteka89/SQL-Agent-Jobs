@@ -17,7 +17,4 @@
 	AND stop_execution_date is null
 	AND (j.name LIKE ('%Stat%') OR j.name LIKE ('%Reindex%')) 
 	AND j.name <> 'DBA UpdStats Specific Tables -GGSAMPLE4GB DB'
-)
-	---SET @Output = 1
---IF @Output = 1
-	--RAISERROR ('This is not an error. DBA ReIndex or Stats job is still running', 16, 1)
+
