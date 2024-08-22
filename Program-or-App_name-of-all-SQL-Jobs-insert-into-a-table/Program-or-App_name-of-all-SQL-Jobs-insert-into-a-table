@@ -1,0 +1,59 @@
+--Truncate table admin.dbo.SQLJobsAPP_NAME;
+IF OBJECT_ID('dbo.SQLJobsAPP_NAME', 'U') IS NOT NULL
+BEGIN
+    DROP TABLE dbo.SQLJobsAPP_NAME;
+END
+
+-- Step 2: Recreate the logging table
+CREATE TABLE dbo.SQLJobsAPP_NAME (
+    LogID INT IDENTITY(1,1) PRIMARY KEY,
+    JobName NVARCHAR(128),
+    StepID INT,
+    StepName NVARCHAR(128),
+    ProgramName NVARCHAR(255),
+    Classification NVARCHAR(50),
+    LoggedAt DATETIME DEFAULT GETDATE()
+);
+
+DECLARE @JobID UNIQUEIDENTIFIER;
+
+-- Iterate through all jobs
+DECLARE job_cursor CURSOR FOR
+SELECT job_id
+FROM msdb.dbo.sysjobs;
+
+OPEN job_cursor;
+FETCH NEXT FROM job_cursor INTO @JobID;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Insert job step details into the logging table
+    INSERT INTO dbo.SQLJobsAPP_NAME (JobName, StepID, StepName, ProgramName, Classification)
+    SELECT 
+        j.name AS JobName,
+        js.step_id AS StepID,
+        js.step_name AS StepName,
+        'SQLAgent - TSQL JobStep (Job ' + CONVERT(VARCHAR(36), @JobID, 1) + ' : Step ' + CAST(js.step_id AS VARCHAR(10)) + ')' AS ProgramName,
+        CASE 
+            WHEN js.command LIKE '%BACKUP%' THEN 'Backup'
+            WHEN js.command LIKE '%RESTORE%' THEN 'Restore'
+            WHEN js.command LIKE '%CHECKDB%' THEN 'Maintenance Operation (CHECKDB)'
+            WHEN js.command LIKE '%INSERT%' OR js.command LIKE '%UPDATE%' OR js.command LIKE '%DELETE%' THEN 'Data Processing (CRUD)'
+            ELSE 'Other Operation'
+        END AS Classification
+    FROM 
+        msdb.dbo.sysjobsteps js
+    JOIN 
+        msdb.dbo.sysjobs j ON js.job_id = j.job_id
+    WHERE 
+        j.job_id = @JobID;
+
+    FETCH NEXT FROM job_cursor INTO @JobID;
+END
+
+CLOSE job_cursor;
+DEALLOCATE job_cursor;
+
+select Jobname, programname, "classification" from admin.dbo.SQLJobsAPP_NAME
+
+ 
