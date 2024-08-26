@@ -1,0 +1,53 @@
+USE msdb;
+GO
+
+DECLARE @JobID UNIQUEIDENTIFIER;
+DECLARE @JobName NVARCHAR(128);
+DECLARE @NewOwnerName SYSNAME = 'sa';  -- The new owner (sa)
+DECLARE @EmailBody NVARCHAR(MAX);
+DECLARE @CRLF NVARCHAR(2) = CHAR(13) + CHAR(10);
+DECLARE @ChangesMade BIT = 0;  -- Flag to check if any changes were made
+DECLARE @CurrentDateTime NVARCHAR(50) = CONVERT(NVARCHAR(50), GETDATE(), 120); -- Current date and time in 'yyyy-mm-dd hh:mi:ss' format
+
+-- Initialize email body with date/time and informational message
+SET @EmailBody = 'The following SQL Server Agent jobs have had their owners changed to ''sa'' on ' + @CurrentDateTime + ':' + @CRLF + @CRLF +
+                 'This is for informational purposes only.' + @CRLF + @CRLF;
+
+DECLARE JobCursor CURSOR FOR
+SELECT job_id, name
+FROM sysjobs
+WHERE owner_sid != SUSER_SID(@NewOwnerName);
+
+OPEN JobCursor;
+FETCH NEXT FROM JobCursor INTO @JobID, @JobName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Change the job owner to sa
+    EXEC sp_update_job 
+        @job_id = @JobID, 
+        @owner_login_name = @NewOwnerName;
+        
+    -- Append the job name to the email body
+    SET @EmailBody = @EmailBody + '- ' + @JobName + @CRLF;
+
+    -- Set the flag to indicate a change was made
+    SET @ChangesMade = 1;
+
+    FETCH NEXT FROM JobCursor INTO @JobID, @JobName;
+END;
+
+CLOSE JobCursor;
+DEALLOCATE JobCursor;
+
+-- Send an email only if changes were made
+IF @ChangesMade = 1
+BEGIN
+    EXEC msdb.dbo.sp_send_dbmail
+        @profile_name = 'YourMailProfileName',  -- Replace with your Database Mail profile name
+        @recipients = 'recipient@example.com',  -- Replace with your recipient email address
+        @subject = 'SQL Server Agent Job Ownership Change Notification',
+        @body = @EmailBody,
+        @body_format = 'TEXT';
+END
+GO
