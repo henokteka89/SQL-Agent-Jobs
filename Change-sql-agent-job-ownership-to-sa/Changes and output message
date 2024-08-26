@@ -1,3 +1,5 @@
+-- EXCLUDE ACCOUNTS SUCH AS agent and service accounts IF NECESSARY
+
 USE msdb;
 GO
 
@@ -8,8 +10,10 @@ DECLARE @NewOwnerName SYSNAME = 'sa';  -- The new owner (sa)
 DECLARE JobCursor CURSOR FOR
 SELECT job_id, name
 FROM sysjobs
-WHERE owner_sid != SUSER_SID(@NewOwnerName);
-
+WHERE owner_sid != SUSER_SID(@NewOwnerName)
+  AND SUSER_SNAME(owner_sid) NOT LIKE 'domain\svc-%'  -- Exclude service accounts (adjust the pattern as needed)
+  AND SUSER_SNAME(owner_sid) NOT LIKE 'NT SERVICE%'    -- Exclude system accounts
+  AND SUSER_SNAME(owner_sid) NOT LIKE 'NT AUTHORITY%'; -- Exclude system accounts
 OPEN JobCursor;
 FETCH NEXT FROM JobCursor INTO @JobID, @JobName;
 
