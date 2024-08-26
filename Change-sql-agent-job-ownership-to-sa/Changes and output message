@@ -1,4 +1,4 @@
--- EXCLUDE ACCOUNTS SUCH AS agent and service accounts IF NECESSARY
+ EXCLUDE ACCOUNTS SUCH AS agent and service accounts IF NECESSARY
 
 USE msdb;
 GO
