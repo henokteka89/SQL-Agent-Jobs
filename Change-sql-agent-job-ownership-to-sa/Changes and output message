@@ -1,0 +1,30 @@
+USE msdb;
+GO
+
+DECLARE @JobID UNIQUEIDENTIFIER;
+DECLARE @JobName NVARCHAR(128);
+DECLARE @NewOwnerName SYSNAME = 'sa';  -- The new owner (sa)
+
+DECLARE JobCursor CURSOR FOR
+SELECT job_id, name
+FROM sysjobs
+WHERE owner_sid != SUSER_SID(@NewOwnerName);
+
+OPEN JobCursor;
+FETCH NEXT FROM JobCursor INTO @JobID, @JobName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Change the job owner to sa
+    EXEC sp_update_job 
+        @job_id = @JobID, 
+        @owner_login_name = @NewOwnerName;
+        
+    PRINT 'Changed owner of job: ' + @JobName + ' to ' + @NewOwnerName;
+
+    FETCH NEXT FROM JobCursor INTO @JobID, @JobName;
+END;
+
+CLOSE JobCursor;
+DEALLOCATE JobCursor;
+GO
