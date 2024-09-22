@@ -1,3 +1,24 @@
--- to start a job from a certain step, lets say step 4
 
+-- Run a job
+EXEC msdb.dbo.sp_start_job @job_name = 'YourJobName';
+
+-- TO run from step 2 onwards
+-- Change the start step to step 2
+EXEC msdb.dbo.sp_update_job 
+    @job_name = 'YourJobName', 
+    @start_step_id = 2;
+THen -- Start the job from step 2
+EXEC msdb.dbo.sp_start_job 
+    @job_name = 'YourJobName';
+
+
+If you want to return it back to start from step 1
+-- Optionally, reset the start step to the original step (e.g., step 1)
+EXEC msdb.dbo.sp_update_job 
+    @job_name = 'YourJobName', 
+    @start_step_id = 1;
+
+
+Manually
+-- to start a job from a certain step, lets say step 4
 -- Right-click on the job and "start job at step", choose the step you want to start. click Start. 
