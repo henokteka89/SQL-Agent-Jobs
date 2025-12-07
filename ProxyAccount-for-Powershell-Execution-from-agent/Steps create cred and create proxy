@@ -1,0 +1,8 @@
+--Step 1 create cred under your name : this account has access
+
+Create Credential [MYacccount] --this is the name of the cred
+With Identity = 'Domain\youraccountname', 
+Secret = 'xx' -- your account's password
+
+-- Step 2 : create proxy for powershell under proxies -- Powershell -- Choose the above Cred
+-- Step 3: on the job that runs this powershell, specify the proxy account that will be used to connect to remote server and execute
