@@ -1,0 +1,51 @@
+CREATE OR ALTER PROCEDURE dbo.usp_CleanupJobHistory_ByJobName
+(
+    @JobName SYSNAME = NULL,
+    @HoursToKeep INT = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @JobId UNIQUEIDENTIFIER;
+    DECLARE @CutoffDate DATETIME;
+
+    -- Validate Job Name
+    IF @JobName IS NULL OR LTRIM(RTRIM(@JobName)) = ''
+    BEGIN
+        PRINT 'ERROR: Job name must be provided.';
+        RETURN;
+    END
+
+    -- Validate Hours
+    IF @HoursToKeep IS NULL OR @HoursToKeep <= 0
+    BEGIN
+        PRINT 'ERROR: @HoursToKeep must be provided and greater than 0.';
+        RETURN;
+    END
+
+    -- Get Job ID
+    SELECT @JobId = job_id FROM msdb.dbo.sysjobs WHERE name = @JobName;
+
+    -- Validate Job Exists
+    IF @JobId IS NULL
+    BEGIN
+        PRINT 'ERROR: Job not found. The job name may be incorrect: ' + @JobName;
+        RETURN;
+    END
+
+    -- Calculate cutoff datetime
+    SET @CutoffDate = DATEADD(HOUR, -@HoursToKeep, GETDATE());
+
+    PRINT 'Cleaning history for job: ' + @JobName;
+    PRINT 'Deleting records older than: ' + CONVERT(VARCHAR(30), @CutoffDate, 120);
+
+    -- Delete job history
+    -- EXEC msdb.dbo.sp_purge_jobhistory @job_id = @JobId, @oldest_date = @CutoffDate;
+    
+      Delete h from msdb.dbo.sysjobhistory h where h.job_id = @JobID and msdb.dbo.agent_datetime(h.run_date, h.run_time) < @CutoffDate;
+      PRINT @@ROWCOUNT
+
+    PRINT 'SUCCESS: Job history cleanup completed.';
+END
+GO
