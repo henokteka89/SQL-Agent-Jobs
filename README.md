@@ -6,6 +6,7 @@ SQL Server Agent job scripts, consolidated from separate repositories. Each fold
 |---|---|
 | [Change-sql-agent-job-ownership-to-sa](Change-sql-agent-job-ownership-to-sa) | Change job owner to `sa`, with output message and email notification |
 | [Check-For-Index-Maintenance-Job-Still-Running](Check-For-Index-Maintenance-Job-Still-Running) | Detect whether the index maintenance job is still running |
+| [Create-Agent-Job-Procedure](Create-Agent-Job-Procedure) | `usp_CreateAgentJob`: create a SQL Agent job in one call — single or multi-step (JSON), none/once/daily/weekly schedules with intra-day repeat, operator notification, all in one transaction |
 | [Disable_enable-Jobs](Disable_enable-Jobs) | Disable or enable jobs |
 | [JobName_basedon_JobID](JobName_basedon_JobID) | Look up a job name from its job ID |
 | [Program-or-App_name-of-all-SQL-Jobs-insert-into-a-table](Program-or-App_name-of-all-SQL-Jobs-insert-into-a-table) | Capture program/app names of all jobs into a table |
