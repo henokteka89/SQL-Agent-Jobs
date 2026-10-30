@@ -1,0 +1,22 @@
+USE msdb;
+GO
+
+--Remove History for a specific job older than 10 minutes - DYNAMICALLY
+
+DECLARE @CUTOFFDATETIME = DATEADD(MINUTE, -10, GETDATE())
+DECLARE @CUTOFFDATE CHAR(16) = CONVERT(CHAR(16), @CUTOFFDATETIME, 120);
+--SELECT @CUTOFFDATE --CHECK THE DATETIME
+EXEC dbo.sp_purge_jobhistory @job_name = N'DBA_monitor..'
+                            --@job_id = N'8BE..' --uniqueidentifier. Alternative to @job_name (you can use either one, not both)
+                            ,@Oldest_data = @CUTOFFDATE
+
+
+-- Remove job history older than 1 hour for the specified job - STATIC
+ EXEC dbo.sp_purge_jobhistory @job_name = N'DBA_monitor..'
+                            --@job_id = N'8BE..' --uniqueidentifier. Alternative to @job_name (you can use either one, not both)
+                            ,@Oldest_data = '2024-08-12 12:37:52' --date time
+
+-- Get @job_id
+
+SELECT Job_id from sysjobs 
+where name = 'DBA_monitor..' --@jobname
