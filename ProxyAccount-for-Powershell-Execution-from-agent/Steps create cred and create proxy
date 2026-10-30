@@ -1,0 +1,18 @@
+--Step 1 create cred under your name : this account has access
+
+Create Credential [MYacccount] --this is the name of the cred
+With Identity = 'Domain\youraccountname', 
+Secret = 'xx' -- your account's password
+
+-- Step 2 : create proxy for powershell under proxies -- Powershell -- Choose the above Cred
+-- Step 3: on the job that runs this powershell, specify the proxy account that will be used to connect to remote server and execute
+Using TSQL
+
+use msdb
+go
+--A) -- Create the agent proxy and bind it to the credential you created above
+Exec msdb.dbo.sp_add_proxy @proxy_name = N'GiveNametotheproxy', @credential_name = N'MYaccount' --the credential created above
+, @enabled = 1
+GO
+--B) grant access to the powershell subsystem (12) -- subsystems include cmdEXEC, Poweshell, SSIS, SSRS,TSQL, etc
+Exec msdb.dbo.sp_grant_proxy_to_subsystem @proxy_name = N'Proxynameabove in A)', @subsystem_id = 12 -- 12 is for powershell
