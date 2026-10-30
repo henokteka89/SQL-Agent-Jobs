@@ -526,6 +526,7 @@ BEGIN
 END;
 GO
 
+	/*
 
 /*==============================================================================
   EXAMPLES
@@ -597,3 +598,5 @@ EXEC dbo.usp_CreateAgentJob
      @RepeatUnit   = 'SECOND', @StartTime      = '08:00',
      @EndTime        = '18:00',
      @RepeatEvery  = 30;
+*/
+
